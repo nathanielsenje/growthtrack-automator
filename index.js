@@ -8,7 +8,7 @@ const nodemailer = require('nodemailer');
 const open = require('open');
 
 // If modifying these scopes, delete token.json.
-const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive'];
+const SCOPES = ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.modify', 'https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/drive'];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
@@ -66,22 +66,59 @@ async function authorize() {
     return client;
 }
 
+// Update the queryEmails function to use the correct subject and add better logging
 async function queryEmails(auth) {
-    await writeLog('Querying emails for Growth Track Sign Ups...');
-    const gmail = google.gmail({ version: 'v1', auth });
+    try {
+        const gmail = google.gmail({ version: 'v1', auth });
 
-    // Calculate date range (7 days ago to now)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const after = Math.floor(sevenDaysAgo.getTime() / 1000);
+        // Calculate date range (7 days ago to now)
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const after = Math.floor(sevenDaysAgo.getTime() / 1000);
 
-    const res = await gmail.users.messages.list({
-        userId: 'me',
-        q: `subject:"Growth Track Signup" after:${after}`,
-    });
-    const messages = res.data.messages || [];
-    await writeLog(`Found ${messages.length} relevant emails from the last 7 days`);
-    return messages;
+        await writeLog('Querying Gmail for unread Growth Track Sign Up emails...');
+
+        // First try with exact subject
+        let response = await gmail.users.messages.list({
+            userId: 'me',
+            q: `subject:"Growth Track Signup" is:unread`,
+            maxResults: 100
+        });
+
+        let messages = response.data.messages || [];
+        await writeLog(`Found ${messages.length} unread messages with subject "Growth Track Sign Up"`);
+
+        // If no messages found, try alternative subject
+        if (messages.length === 0) {
+            response = await gmail.users.messages.list({
+                userId: 'me',
+                q: `subject:"Growth Track Sign Up Form" is:unread`,
+                maxResults: 100
+            });
+            messages = response.data.messages || [];
+            await writeLog(`Found ${messages.length} unread messages with subject "Growth Track Sign Up Form"`);
+        }
+
+        // Log details about found messages
+        if (messages.length > 0) {
+            await writeLog('Getting message details...');
+            for (const message of messages) {
+                const details = await gmail.users.messages.get({
+                    userId: 'me',
+                    id: message.id,
+                    format: 'metadata',
+                    metadataHeaders: ['Subject']
+                });
+                const subject = details.data.payload.headers.find(h => h.name === 'Subject')?.value;
+                await writeLog(`Message ${message.id} has subject: "${subject}"`);
+            }
+        }
+
+        return messages;
+    } catch (error) {
+        await writeLog(`Error querying emails: ${error.message}`);
+        throw error;
+    }
 }
 
 async function extractSignupInfo(auth, messageId) {
@@ -304,48 +341,112 @@ async function saveToGoogleSheets(auth, data) {
 }
 
 async function sendEmail(auth, spreadsheetId) {
-    await writeLog('Preparing to send email with attachment...');
-    const sheets = google.sheets({ version: 'v4', auth });
-    const drive = google.drive({ version: 'v3', auth });
+    const tempFilePath = path.join(process.cwd(), 'GrowthTrackSignups.xlsx');
+    try {
+        await writeLog('Preparing to send email with attachment...');
+        const drive = google.drive({ version: 'v3', auth });
 
-    await writeLog('Exporting spreadsheet as Excel...');
-    const res = await drive.files.export({
-        fileId: spreadsheetId,
-        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    }, { responseType: 'arraybuffer' });
+        await writeLog('Exporting spreadsheet as Excel...');
+        const res = await drive.files.export({
+            fileId: spreadsheetId,
+            mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        }, { responseType: 'arraybuffer' });
 
-    await writeLog('Saving Excel file temporarily...');
-    await fs.writeFile('GrowthTrackSignups.xlsx', Buffer.from(res.data));
+        await writeLog('Saving Excel file temporarily...');
+        await fs.writeFile(tempFilePath, Buffer.from(res.data));
 
-    await writeLog('Creating email transporter...');
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-        },
-    });
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const dateStr = formatDate(sevenDaysAgo);
 
-    await writeLog('Sending email...');
-    const info = await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: process.env.RECIPIENT_EMAIL,
-        subject: 'Growth Track Signups',
-        text: 'Please find attached the latest Growth Track signups.',
-        attachments: [
-            {
-                filename: 'GrowthTrackSignups.xlsx',
-                path: './GrowthTrackSignups.xlsx',
+        const emailBody = `Hello,
+
+I trust you are well. Please see the attached file for the latest growth track registrations, from ${dateStr}
+
+Best Regards,
+Nathaniel Senje
+Digital Content Manager and Music Director
++255 747 428 797
+The Ocean International Community Church (TAG),
+Plot No. 1831, The Little Theatre`;
+
+        await writeLog('Creating email transporter...');
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
             },
-        ],
-    });
+        });
 
-    await writeLog(`Email sent: ${info.messageId}`);
+        await writeLog('Sending email...');
+        const info = await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: process.env.RECIPIENT_EMAIL,
+            subject: 'Growth Track Signups',
+            text: emailBody,
+            attachments: [
+                {
+                    filename: 'GrowthTrackSignups.xlsx',
+                    path: tempFilePath,
+                }
+            ],
+        });
 
-    await writeLog('Deleting temporary Excel file...');
-    await fs.unlink('GrowthTrackSignups.xlsx');
+        await writeLog(`Email sent: ${info.messageId}`);
+
+        // Clean up temp file
+        await writeLog('Cleaning up temporary file...');
+        await fs.unlink(tempFilePath);
+    } catch (error) {
+        // Clean up temp file even if there's an error
+        try {
+            await fs.unlink(tempFilePath);
+        } catch {
+            // Ignore cleanup errors in error handler
+        }
+        throw error;
+    }
 }
 
+// Update the markEmailAsRead function with better error handling
+async function markEmailAsRead(auth, messageId) {
+    try {
+        const gmail = google.gmail({ version: 'v1', auth });
+        await writeLog(`Marking email ${messageId} as read...`);
+        
+        await gmail.users.messages.modify({
+            userId: 'me',
+            id: messageId,
+            resource: {
+                removeLabelIds: ['UNREAD']
+            }
+        });
+        
+        await writeLog(`Successfully marked email ${messageId} as read`);
+    } catch (error) {
+        await writeLog(`Error marking email as read: ${error.message}`);
+        throw error;
+    }
+}
+
+// Add this function to check for duplicate entries
+async function isDuplicateEntry(auth, data, spreadsheetId) {
+    const sheets = google.sheets({ version: 'v4', auth });
+    const response = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: 'Sheet1!A:D',
+    });
+
+    const rows = response.data.values || [];
+    return rows.some(row =>
+        row[1] === data.name &&
+        row[2] === data.phone &&
+        row[3] === data.email
+    );
+}
+
+// Modify the main function to use these new features
 async function main() {
     try {
         await writeLog('Starting the Growth Track Signup process...');
@@ -353,14 +454,46 @@ async function main() {
         const messages = await queryEmails(auth);
 
         let spreadsheetId;
+        let processedCount = 0;
+        let skippedCount = 0;
+
+        await writeLog(`Processing ${messages.length} messages...`);
+
         for (const message of messages) {
-            await writeLog(`Processing message ${message.id}...`);
-            const signupInfo = await extractSignupInfo(auth, message.id);
-            const result = await saveToGoogleSheets(auth, signupInfo);
-            spreadsheetId = result.spreadsheetId;
+            try {
+                await writeLog(`Processing message ${message.id}...`);
+                const signupInfo = await extractSignupInfo(auth, message.id);
+
+                // Get or create spreadsheet if this is the first entry
+                if (!spreadsheetId) {
+                    spreadsheetId = await createOrGetSpreadsheet(auth);
+                }
+
+                // Check for duplicates before saving
+                const isDuplicate = await isDuplicateEntry(auth, signupInfo, spreadsheetId);
+                if (isDuplicate) {
+                    await writeLog(`Skipping duplicate entry for ${signupInfo.name}`);
+                    skippedCount++;
+                } else {
+                    const result = await saveToGoogleSheets(auth, signupInfo);
+                    spreadsheetId = result.spreadsheetId;
+                    processedCount++;
+                    await writeLog(`Successfully processed signup for ${signupInfo.name}`);
+                }
+
+                // Mark as read regardless of whether it was a duplicate or not
+                await markEmailAsRead(auth, message.id);
+            } catch (error) {
+                await writeLog(`Error processing message ${message.id}: ${error.message}`);
+                // Continue with next message even if one fails
+                continue;
+            }
         }
 
-        if (spreadsheetId) {
+        await writeLog(`Processing complete. ${processedCount} new entries added, ${skippedCount} duplicates skipped`);
+
+        if (processedCount > 0) {
+            await writeLog(`Sending email with ${processedCount} new signups`);
             await sendEmail(auth, spreadsheetId);
         } else {
             await writeLog('No new signups to process');
