@@ -1,0 +1,149 @@
+Starting Growth Track Signups script at Sun Oct 27 21:06:00 EAT 2024
+Starting the Growth Track Signup process...
+Loaded saved credentials
+Querying emails for Growth Track Sign Ups...
+Found 5 relevant emails from the last 7 days
+Processing message 192cd74a7b5299e4...
+Extracting signup information from email 192cd74a7b5299e4...
+Parsing email body...
+Raw email body: <table>
+<tr>
+<td valign="top">Full Name:</td>
+<td>Brian Benne</td>
+</tr>
+<tr>
+<td valign="top">Phone:</td>
+<td>0627475646</td>
+</tr>
+<tr>
+<td valign="top">Email:</td>
+<td>benne.brian@gmail.com</td>
+</tr>
+</table>
+
+
+Extracted name: Brian Benne
+Extracted phone: 0627475646
+Extracted email: benne.brian@gmail.com
+Using email date as registration date: 27 October 2024
+Saving information to Google Sheets...
+Found existing "Growth Track Registrations" folder with ID: 1Eoux5-FPqWAAwkqsjHOt0AOv5vHIf-s7
+Found existing spreadsheet with ID: 1-AtAJdHTpGO5IJtoMtL5_s4xBLDx-tlE7LSOCPZGhQA
+Information saved to Google Sheets
+Processing message 192cd73c2d2d1264...
+Extracting signup information from email 192cd73c2d2d1264...
+Parsing email body...
+Raw email body: <table>
+<tr>
+<td valign="top">Full Name:</td>
+<td>Neema John kilewo</td>
+</tr>
+<tr>
+<td valign="top">Phone:</td>
+<td>0744878758</td>
+</tr>
+<tr>
+<td valign="top">Email:</td>
+<td>neyjohnkil@gmail.com</td>
+</tr>
+</table>
+
+
+Extracted name: Neema John kilewo
+Extracted phone: 0744878758
+Extracted email: neyjohnkil@gmail.com
+Using email date as registration date: 27 October 2024
+Saving information to Google Sheets...
+Found existing "Growth Track Registrations" folder with ID: 1Eoux5-FPqWAAwkqsjHOt0AOv5vHIf-s7
+Found existing spreadsheet with ID: 1-AtAJdHTpGO5IJtoMtL5_s4xBLDx-tlE7LSOCPZGhQA
+Information saved to Google Sheets
+Processing message 192b8e8ffeb08bc1...
+Extracting signup information from email 192b8e8ffeb08bc1...
+Parsing email body...
+Raw email body: <table>
+<tr>
+<td valign="top">Full Name:</td>
+<td>Hamilton Fungula </td>
+</tr>
+<tr>
+<td valign="top">Phone:</td>
+<td>0766367546</td>
+</tr>
+<tr>
+<td valign="top">Email:</td>
+<td>hamiltonfungula93@gmail.com</td>
+</tr>
+</table>
+
+
+Extracted name: Hamilton Fungula
+Extracted phone: 0766367546
+Extracted email: hamiltonfungula93@gmail.com
+Using email date as registration date: 23 October 2024
+Saving information to Google Sheets...
+Found existing "Growth Track Registrations" folder with ID: 1Eoux5-FPqWAAwkqsjHOt0AOv5vHIf-s7
+Found existing spreadsheet with ID: 1-AtAJdHTpGO5IJtoMtL5_s4xBLDx-tlE7LSOCPZGhQA
+Information saved to Google Sheets
+Processing message 192b84cd451eeab5...
+Extracting signup information from email 192b84cd451eeab5...
+Parsing email body...
+Raw email body: <table>
+<tr>
+<td valign="top">Full Name:</td>
+<td>Julia Masline </td>
+</tr>
+<tr>
+<td valign="top">Phone:</td>
+<td>0745361139</td>
+</tr>
+<tr>
+<td valign="top">Email:</td>
+<td>juliamasline82@gmail.com</td>
+</tr>
+</table>
+
+
+Extracted name: Julia Masline
+Extracted phone: 0745361139
+Extracted email: juliamasline82@gmail.com
+Using email date as registration date: 23 October 2024
+Saving information to Google Sheets...
+Found existing "Growth Track Registrations" folder with ID: 1Eoux5-FPqWAAwkqsjHOt0AOv5vHIf-s7
+Found existing spreadsheet with ID: 1-AtAJdHTpGO5IJtoMtL5_s4xBLDx-tlE7LSOCPZGhQA
+Information saved to Google Sheets
+Processing message 192b3c74711e96b6...
+Extracting signup information from email 192b3c74711e96b6...
+Parsing email body...
+Raw email body: <table>
+<tr>
+<td valign="top">Full Name:</td>
+<td>Ruth Nnko</td>
+</tr>
+<tr>
+<td valign="top">Phone:</td>
+<td>0742574586</td>
+</tr>
+<tr>
+<td valign="top">Email:</td>
+<td>ruthnnko21@gmail.com</td>
+</tr>
+</table>
+
+
+Extracted name: Ruth Nnko
+Extracted phone: 0742574586
+Extracted email: ruthnnko21@gmail.com
+Using email date as registration date: 22 October 2024
+Saving information to Google Sheets...
+Found existing "Growth Track Registrations" folder with ID: 1Eoux5-FPqWAAwkqsjHOt0AOv5vHIf-s7
+Found existing spreadsheet with ID: 1-AtAJdHTpGO5IJtoMtL5_s4xBLDx-tlE7LSOCPZGhQA
+Information saved to Google Sheets
+Preparing to send email with attachment...
+Exporting spreadsheet as Excel...
+Saving Excel file temporarily...
+Creating email transporter...
+Sending email...
+Email sent: <f12bc564-6487-100d-1366-010c308682af@theoceanindar.org>
+Deleting temporary Excel file...
+Process completed successfully
+Finished at Sun Oct 27 21:06:27 EAT 2024

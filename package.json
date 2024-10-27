@@ -1,0 +1,23 @@
+{
+  "name": "gtsignups",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "email",
+    "google-sheets",
+    "automation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "An application that queries emails for Growth Track signups, saves the information to a Google spreadsheet, and sends an email with the spreadsheet as an attachment.",
+  "dependencies": {
+    "@google-cloud/local-auth": "^2.1.0",
+    "dotenv": "^16.4.5",
+    "googleapis": "^92.0.0",
+    "nodemailer": "^6.7.5",
+    "open": "^8.4.0"
+  }
+}
